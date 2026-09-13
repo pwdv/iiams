@@ -1,0 +1,75 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <div class="eyebrow">Inventory / Item detail</div>
+    <h1>{{ item.item_name }}</h1>
+    <div class="subtitle mono">{{ item.sku }}</div>
+  </div>
+  <div class="head-actions">
+    {% if can_manage %}
+      <a class="btn" href="{% url 'inventory_edit' item.pk %}">Edit item</a>
+      <a class="btn primary" href="{% url 'inventory_receive' item.pk %}">+ Receive Stock</a>
+      <a class="btn" href="{% url 'inventory_issue' item.pk %}">− Issue Stock</a>
+    {% endif %}
+    <a class="btn" href="{% url 'inventory' %}">Back to Inventory</a>
+  </div>
+</div>
+
+<div class="inventory-summary">
+  <div class="stock-main">
+    <div class="eyebrow">Current stock</div>
+    <strong>{{ item.quantity_on_hand }}</strong>
+    <span>units on hand</span>
+    {% if item.needs_reorder %}
+      <div class="stock-warning">Reorder required · level {{ item.reorder_level }}</div>
+    {% else %}
+      <div class="stock-ok">Stock level is above reorder point</div>
+    {% endif %}
+  </div>
+  <div class="detail-field"><span>SKU</span><b class="mono">{{ item.sku }}</b></div>
+  <div class="detail-field"><span>Category</span><b>{{ item.category }}</b></div>
+  <div class="detail-field"><span>Supplier</span><b>{{ item.supplier|default:"—" }}</b></div>
+  <div class="detail-field"><span>Reorder level</span><b>{{ item.reorder_level }}</b></div>
+  <div class="detail-field"><span>Reorder quantity</span><b>{{ item.reorder_qty }}</b></div>
+</div>
+
+<div class="panel">
+  <div class="panelhead">
+    <b>Inventory movement history</b>
+    <span class="muted">Latest 50 movements</span>
+  </div>
+  <div class="tablewrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Movement</th>
+          <th>Quantity</th>
+          <th>Reference / Destination</th>
+          <th>Actor</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for tx in transactions %}
+        <tr>
+          <td>{{ tx.created_at|date:"Y-m-d H:i:s" }}</td>
+          <td>
+            {% if tx.movement == "INBOUND" %}
+              <span class="movement inbound">IN</span>
+            {% else %}
+              <span class="movement outbound">OUT</span>
+            {% endif %}
+          </td>
+          <td class="mono">{% if tx.movement == "INBOUND" %}+{% else %}-{% endif %}{{ tx.quantity }}</td>
+          <td>{{ tx.reference|default:"—" }}</td>
+          <td>{{ tx.actor_name }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">No movement history for this item yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,4 @@
+{% extends "dashboard/base.html" %}{% block content %}
+<div class="pagehead"><div><div class="eyebrow">Record management</div><h1>{{ title }}</h1></div></div>
+<div class="panel"><div class="panelbody"><form method="post">{% csrf_token %}<div class="formgrid">{% for field in form %}<div class="field" {% if field.name == 'description' %}style="grid-column:1/-1"{% endif %}><label>{{ field.label }}</label>{{ field }}{% if field.errors %}<small style="color:#c1443b">{{ field.errors|striptags }}</small>{% endif %}</div>{% endfor %}</div><div class="actions"><button class="btn primary">Save changes</button><a class="btn" href="{% if back_pk %}{% url back_url back_pk %}{% else %}{% url back_url %}{% endif %}">Cancel</a></div></form></div></div>
+{% endblock %}

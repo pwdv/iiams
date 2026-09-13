@@ -1,0 +1,78 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <div class="eyebrow">Inventory / Stock movement</div>
+    <h1>{% if is_inbound %}Receive Stock{% else %}Issue Stock{% endif %}</h1>
+    <div class="subtitle">{{ item.item_name }} · <span class="mono">{{ item.sku }}</span></div>
+  </div>
+</div>
+
+<div class="movement-layout">
+  <div class="panel">
+    <div class="panelhead">
+      <b>{% if is_inbound %}Record an inbound receipt{% else %}Record an outbound issue{% endif %}</b>
+      <span class="muted">Current stock: {{ item.quantity_on_hand }}</span>
+    </div>
+    <div class="panelbody">
+      {% if errors %}
+        <div class="form-errors">
+          {% for error in errors %}<div>{{ error }}</div>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="formgrid">
+          <div class="field">
+            <label for="quantity">Quantity</label>
+            <input id="quantity" name="quantity" type="number" min="1" value="{{ quantity }}" required autofocus>
+          </div>
+
+          {% if not is_inbound %}
+          <div class="field">
+            <label for="department">Department / Destination</label>
+            <select id="department" name="department" required>
+              <option value="">Select destination</option>
+              <option {% if department == "IT Operations" %}selected{% endif %}>IT Operations</option>
+              <option {% if department == "Warehouse" %}selected{% endif %}>Warehouse</option>
+              <option {% if department == "Procurement" %}selected{% endif %}>Procurement</option>
+              <option {% if department == "Maintenance" %}selected{% endif %}>Maintenance</option>
+              <option {% if department == "Internal Audit" %}selected{% endif %}>Internal Audit</option>
+            </select>
+          </div>
+          {% endif %}
+
+          <div class="field" style="grid-column:1/-1">
+            <label for="reference">{% if is_inbound %}Reference / PO number{% else %}Reference / Request number{% endif %}</label>
+            <input id="reference" name="reference" value="{{ reference }}" placeholder="{% if is_inbound %}e.g. PO-2026-0041{% else %}e.g. SR-2026-0182{% endif %}" required>
+          </div>
+        </div>
+
+        <div class="movement-note">
+          {% if is_inbound %}
+            Receiving this stock will increase available quantity immediately and create an audit record.
+          {% else %}
+            The system will reject the issue if the requested quantity exceeds available stock.
+          {% endif %}
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" type="submit">{% if is_inbound %}Receive {{ item.item_name }}{% else %}Issue {{ item.item_name }}{% endif %}</button>
+          <a class="btn" href="{% url 'inventory_detail' item.pk %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panelhead"><b>Item information</b></div>
+    <div class="panelbody side-details">
+      <div><span>SKU</span><b class="mono">{{ item.sku }}</b></div>
+      <div><span>Current stock</span><b>{{ item.quantity_on_hand }} units</b></div>
+      <div><span>Reorder point</span><b>{{ item.reorder_level }} units</b></div>
+      <div><span>Supplier</span><b>{{ item.supplier|default:"—" }}</b></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

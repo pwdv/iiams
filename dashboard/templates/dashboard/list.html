@@ -1,0 +1,49 @@
+{% extends "dashboard/base.html" %}{% load dashboard_tags %}{% block content %}
+<div class="pagehead"><div><div class="eyebrow">Data management</div><h1>{{ title }}</h1></div>{% if create_url %}<a class="btn primary" href="{% url create_url %}">+ New</a>{% endif %}</div>
+<form class="toolbar" method="get"><input class="search" name="q" value="{{ search }}" placeholder="Search by name, ID, serial or SKU">{% if status_options %}<select name="status" class="filter-select"><option value="">All statuses</option>{% for value,label in status_options %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% endif %}<button class="btn">Filter</button><a class="btn" href="?">Reset</a></form>
+<div class="panel"><div class="tablewrap"><table class="table"><thead><tr>{% for c in columns %}<th>{{ c|cut:"_" }}</th>{% endfor %}{% if can_edit or section == 'inventory' %}<th>Actions</th>{% endif %}</tr></thead><tbody>
+{% for item in items %}<tr class="data-row">
+{% for c in columns %}
+<td>
+{% if c == 'name' and section == 'assets' %}
+<a class="row-link" href="{% url 'asset_detail' item.pk %}">{{ item.name }}</a>
+{% elif c == 'item_name' and section == 'inventory' %}
+<a class="row-link" href="{% url 'inventory_detail' item.pk %}">{{ item.item_name }}</a>
+{% elif c == 'status' %}
+<span class="status {{ item.status }}">{{ item.get_status_display }}</span>
+{% elif c == 'quantity_on_hand' and section == 'inventory' %}
+<span class="{% if item.needs_reorder %}stock-low{% endif %}">{{ item.quantity_on_hand }}</span>
+{% elif c == 'reorder_level' and section == 'inventory' %}
+{{ item.reorder_level }}
+{% elif c == 'serial_number' or c == 'sku' %}
+<span class="mono">{{ item|attr:c }}</span>
+{% elif c == 'current_value' or c == 'total_value' %}
+SAR {{ item|attr:c|floatformat:0 }}
+{% else %}
+{{ item|attr:c|default:"—" }}
+{% endif %}
+</td>
+{% endfor %}
+{% if can_edit or section == 'inventory' %}
+<td class="row-actions">
+{% if section == 'assets' %}
+<a href="{% url 'asset_detail' item.pk %}">View</a>
+{% if can_edit %}<a href="{% url 'asset_edit' item.pk %}">Edit</a>{% endif %}
+{% elif section == 'inventory' %}
+<a href="{% url 'inventory_detail' item.pk %}">View</a>
+{% if can_edit %}<a href="{% url 'inventory_receive' item.pk %}">Receive</a>
+<a href="{% url 'inventory_issue' item.pk %}">Issue</a>{% endif %}
+{% elif section == 'maintenance' %}
+<a href="{% url 'maintenance_edit' item.pk %}">Edit</a>
+{% elif section == 'procurement' %}
+<a href="{% url 'po_edit' item.pk %}">Edit</a>
+{% elif section == 'suppliers' %}
+<a href="{% url 'supplier_edit' item.pk %}">Edit</a>
+{% else %}—{% endif %}
+</td>
+{% endif %}
+</tr>
+{% empty %}
+<tr><td colspan="10">No records found.</td></tr>
+{% endfor %}</tbody></table></div></div>
+{% endblock %}

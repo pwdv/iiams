@@ -1,0 +1,11 @@
+{% extends "dashboard/base.html" %}{% block content %}
+<div class="pagehead"><div><div class="eyebrow">Operations overview</div><h1>Good to see you, {{ user.first_name|default:user.username }}</h1></div></div>
+<div class="kpis">
+<a class="kpi kpi-link" href="{% url 'assets' %}"><div class="n">{{ total_assets }}</div><div class="l">Total assets</div><div class="delta">{{ active_assets }} active</div></a>
+<a class="kpi kpi-link" href="{% url 'inventory' %}"><div class="n">{{ inventory_units }}</div><div class="l">Inventory units</div><div class="delta">{{ low_stock }} items at reorder level</div></a>
+<a class="kpi kpi-link" href="{% url 'maintenance' %}"><div class="n">{{ open_work_orders }}</div><div class="l">Open work orders</div><div class="delta">{{ maintenance_assets }} assets in maintenance</div></a>
+<a class="kpi kpi-link" href="{% url 'procurement' %}"><div class="n">{{ pending_pos }}</div><div class="l">Pending purchase orders</div><div class="delta">SAR {{ asset_value|floatformat:0 }} asset value</div></a>
+</div>
+<div class="grid2"><div class="panel"><div class="panelhead"><b>Recent assets</b><a href="{% url 'assets' %}">View all →</a></div><div class="tablewrap"><table class="table"><thead><tr><th>Asset</th><th>Serial</th><th>Location</th><th>Status</th></tr></thead><tbody>{% for a in recent_assets %}<tr><td><a class="row-link" href="{% url 'asset_edit' a.pk %}"><b>{{ a.name }}</b><br><small>{{ a.category }}</small></a></td><td class="mono">{{ a.serial_number }}</td><td>{{ a.location|default:"Unassigned" }}</td><td><span class="status {{ a.status }}">{{ a.get_status_display }}</span></td></tr>{% empty %}<tr><td colspan="4">No assets yet.</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="panel"><div class="panelhead"><b>Attention</b><a href="{% url 'inventory' %}">{{ low_stock }} low stock →</a></div><div class="panelbody">{% for item in alerts %}<a class="alertrow alert-link" href="{% url 'inventory' %}"><b>{% if item.item_name %}Low stock · {{ item.item_name }}{% else %}Maintenance · {{ item.asset.name }}{% endif %}</b><small>{% if item.item_name %}{{ item.quantity_on_hand }} units remaining{% else %}Open work order{% endif %}</small></a>{% empty %}<div>No active alerts.</div>{% endfor %}</div></div></div>
+{% endblock %}

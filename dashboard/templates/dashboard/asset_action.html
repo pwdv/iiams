@@ -1,0 +1,51 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <div class="eyebrow">Assets / Operational action</div>
+    <h1>{{ title }}</h1>
+    <div class="subtitle">{{ asset.name }} · <span class="mono">{{ asset.serial_number }}</span></div>
+  </div>
+</div>
+
+<div class="movement-layout">
+  <div class="panel">
+    <div class="panelhead"><b>{{ action_label }}</b><span class="muted">Changes are recorded in asset history and audit log.</span></div>
+    <div class="panelbody">
+      {% if confirm_only %}
+        <div class="notice">This will remove the current assignment from <b>{{ asset.name }}</b>. The asset itself will not be deleted.</div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="field"><label for="note">Note</label><input id="note" name="note" maxlength="255" placeholder="Optional reason or note"></div>
+          <div class="actions"><button class="btn primary" type="submit">{{ action_label }}</button><a class="btn" href="{% url back_url asset.pk %}">Cancel</a></div>
+        </form>
+      {% else %}
+        <form method="post">
+          {% csrf_token %}
+          <div class="formgrid">
+            {% for field in form %}
+              <div class="field{% if field.name == 'note' %} full-field{% endif %}">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}<div class="form-errors">{{ field.errors }}</div>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="actions"><button class="btn primary" type="submit">{{ action_label }}</button><a class="btn" href="{% url back_url asset.pk %}">Cancel</a></div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panelhead"><b>Current state</b></div>
+    <div class="panelbody side-details">
+      <div><span>Asset</span><b>{{ asset.name }}</b></div>
+      <div><span>Serial</span><b class="mono">{{ asset.serial_number }}</b></div>
+      <div><span>Status</span><b>{{ asset.get_status_display }}</b></div>
+      <div><span>Location</span><b>{{ asset.location|default:"Location unknown" }}</b></div>
+      <div><span>Assigned to</span><b>{% if asset.assigned_user %}{{ asset.assigned_user.get_full_name|default:asset.assigned_user.username }}{% else %}Unassigned{% endif %}</b></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

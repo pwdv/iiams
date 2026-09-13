@@ -1,0 +1,80 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <div class="eyebrow">Assets / Record detail</div>
+    <h1>{{ asset.name }}</h1>
+    <div class="subtitle mono">{{ asset.serial_number }} · {{ asset.tag_code }}</div>
+  </div>
+  <div class="head-actions">
+    {% if can_manage %}
+      <a class="btn primary" href="{% url 'asset_assign' asset.pk %}">Assign</a>
+      <a class="btn" href="{% url 'asset_transfer' asset.pk %}">Transfer</a>
+      <a class="btn" href="{% url 'asset_status' asset.pk %}">Change status</a>
+      {% if asset.assigned_user %}<a class="btn" href="{% url 'asset_unassign' asset.pk %}">Unassign</a>{% endif %}
+      <a class="btn" href="{% url 'asset_edit' asset.pk %}">Edit</a>
+    {% endif %}
+    <a class="btn" href="{% url 'assets' %}">Back to Assets</a>
+  </div>
+</div>
+
+<div class="asset-summary">
+  <div class="asset-main">
+    <div class="eyebrow">Asset status</div>
+    <span class="status {{ asset.status }}">{{ asset.get_status_display }}</span>
+    <div class="asset-seen">Last seen: {{ asset.last_seen|date:"Y-m-d H:i:s"|default:"Not recorded" }}</div>
+  </div>
+  <div class="detail-field"><span>Category</span><b>{{ asset.category }}</b></div>
+  <div class="detail-field"><span>Location</span><b>{{ asset.location|default:"Location unknown" }}</b></div>
+  <div class="detail-field"><span>Assigned to</span><b>{% if asset.assigned_user %}{{ asset.assigned_user.get_full_name|default:asset.assigned_user.username }}{% else %}Unassigned{% endif %}</b></div>
+  <div class="detail-field"><span>Purchase cost</span><b>SAR {{ asset.purchase_cost|floatformat:0 }}</b></div>
+  <div class="detail-field"><span>Current value</span><b>SAR {{ asset.current_value|floatformat:0 }}</b></div>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <div class="panelhead"><b>Asset history</b><span class="muted">Latest 50 operational events</span></div>
+    <div class="tablewrap">
+      <table class="table">
+        <thead><tr><th>Time</th><th>Event</th><th>Movement</th><th>Actor</th><th>Note</th></tr></thead>
+        <tbody>
+        {% for event in events %}
+          <tr>
+            <td class="mono">{{ event.created_at|date:"Y-m-d H:i:s" }}</td>
+            <td><b>{{ event.get_event_type_display }}</b></td>
+            <td>
+              {% if event.event_type == 'TRANSFERRED' %}
+                {{ event.from_location|default:"—" }} → {{ event.to_location|default:"—" }}
+              {% elif event.event_type == 'ASSIGNED' %}
+                {% if event.from_user %}{{ event.from_user.get_full_name|default:event.from_user.username }}{% else %}Unassigned{% endif %} → {% if event.to_user %}{{ event.to_user.get_full_name|default:event.to_user.username }}{% else %}—{% endif %}
+              {% elif event.event_type == 'UNASSIGNED' %}
+                {% if event.from_user %}{{ event.from_user.get_full_name|default:event.from_user.username }}{% else %}—{% endif %} → Unassigned
+              {% elif event.event_type == 'STATUS_CHANGED' %}
+                {{ event.from_status|default:"—" }} → {{ event.to_status|default:"—" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>{% if event.actor %}{{ event.actor.get_full_name|default:event.actor.username }}{% else %}System{% endif %}</td>
+            <td>{{ event.note|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">No operational history for this asset yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panelhead"><b>Record information</b></div>
+    <div class="panelbody side-details">
+      <div><span>Serial number</span><b class="mono">{{ asset.serial_number }}</b></div>
+      <div><span>QR / RFID tag</span><b class="mono">{{ asset.tag_code }}</b></div>
+      <div><span>Purchase date</span><b>{{ asset.purchase_date|date:"Y-m-d"|default:"—" }}</b></div>
+      <div><span>Assigned department</span><b>{{ asset.assigned_user.department|default:"—" }}</b></div>
+      <div><span>Location</span><b>{{ asset.location|default:"Unknown" }}</b></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
