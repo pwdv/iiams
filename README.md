@@ -11,22 +11,7 @@ IIAMS is a Django-based internal operations platform for asset management, inven
 - SQLite for development
 - PostgreSQL recommended for production
 
-## Run the demo
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-./start_iiams.sh
-```
-
-The launcher applies migrations, creates demo data, starts the continuous simulation engine, and starts Django.
-
-Open: `http://127.0.0.1:8000/`
-
 ## Demo accounts
-
-
 
 - `admin` — System Admin
 - `manager` — Manager
@@ -39,9 +24,6 @@ Open: `http://127.0.0.1:8000/`
 
 The simulation is intentionally autonomous. The background command:
 
-```bash
-python manage.py simulate_live --interval 2
-```
 
 runs continuously and generates sensor readings and business activity. The Simulation page polls the live feed every second and updates the UI without a page refresh.
 
@@ -76,10 +58,6 @@ Recommended next production upgrades:
 
 The live engine is designed as an autonomous warehouse/company simulation. It does not repeatedly mutate the same demo item just to make the screen move. The database contains a larger catalog of inventory SKUs, and the engine generates real inbound receiving and outbound issuing transactions.
 
-Run it alongside Django:
 
-```bash
-python manage.py simulate_live --interval 3
-```
 
 Each engine cycle represents an accelerated business minute and creates 1-3 stock movements on average. The browser polls the feed every second and displays new transactions without a page refresh. Keep the simulation command running in the background for continuous activity.
