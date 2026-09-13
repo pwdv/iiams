@@ -26,7 +26,7 @@ Open: `http://127.0.0.1:8000/`
 
 ## Demo accounts
 
-Password for all accounts: `Iiams@2026`
+
 
 - `admin` — System Admin
 - `manager` — Manager
